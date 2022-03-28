@@ -18,8 +18,8 @@ METHOD = 0;
 
 
 # In this case the tip of the nose is the fixed point in the face (REF_POINT)
-cam_res = [1080, 1080];
-short_smooth = 5;
+cam_res = [900, 900];
+short_smooth = 8;
 calib = 0;
 X_calib, Y_calib = [], [];
 cur_pointer = np.zeros(4);
@@ -52,9 +52,9 @@ def initiate_dai():
     cam_rgb = pipeline.createColorCamera()
     cam_rgb.setPreviewSize(cam_res[0], cam_res[1])  # 300x300 will be the preview frame size, available as 'preview' output of the node
     cam_rgb.setInterleaved(False)
-    cam_rgb.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_4_K)
+    #cam_rgb.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_4_K)
     #cam_rgb.initialControl.setManualExposure(9000, 1200)
-    cam_rgb.setFps(40)
+    #cam_rgb.setFps(40)
 
     xout_rgb = pipeline.createXLinkOut()
     xout_rgb.setStreamName("rgb")
@@ -271,6 +271,7 @@ class OneEuroFilter(object):
 
 
 
+#first_face_3d = np.load('C:/Users/SebastianG/Nextcloud/_SEBASTIAN/Forschung/Eye Tracking/AET-v2/FACE_ROT/face_3d_middle.npy')
 
 with depthai.Device(pipeline) as device:
     # From this point, the Device will be in "running" mode and will start sending data via XLink
@@ -281,17 +282,21 @@ with depthai.Device(pipeline) as device:
     ref_r = [0,0];
     l_cx, l_cy, r_cx, r_cy = 0, 0, 0, 0;
     
+    nframe = 0;
+
     config = {
-        'freq': 120,       # Hz
-        'mincutoff': 1.0,  # FIXME
-        'beta': 1.0,       # FIXME
-        'dcutoff': 1.0     # this one should be ok
-        }
+            'freq': 120,       # Hz
+            'mincutoff': 1.0,  # FIXME
+            'beta': 1.0,       # FIXME
+            'dcutoff': 1.0     # this one should be ok
+            }
 
     f_cry = OneEuroFilter(**config)
     f_crx = OneEuroFilter(**config)
     f_cly = OneEuroFilter(**config)
     f_clx = OneEuroFilter(**config)
+
+
     
     while True:
         in_rgb = q_rgb.tryGet()
@@ -313,6 +318,23 @@ with depthai.Device(pipeline) as device:
                 
                 if 'first_face_3d' not in locals():
                     first_face_3d = landmarks;
+
+
+
+                # Essential muscle Ts
+                ret, M, mask = cv2.estimateAffine3D(landmarks,first_face_3d);
+                M = np.mat(M);
+                #trans_mat = np.vstack([ M, [0,0,0,1]])
+
+                #for point in landmarks:#np.mean(face_3d,axis=2):
+                #    point = np.append(point,1)
+                #    point = M.dot(point).T;
+                #    cv2.circle(frame, (int(point[0]*cam_res[0]), int(point[1])*cam_res[1]), 2, (0,0,255), 1)
+
+                #angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(M[:,:3])
+
+
+
 
                 ref_l = np.mean(landmarks[points_eye_l,:2], axis = 0)
                 ref_r = np.mean(landmarks[points_eye_r,:2], axis = 0)                
@@ -339,17 +361,13 @@ with depthai.Device(pipeline) as device:
             big_image[y_offset:y_offset+480, x_offset:x_offset+480] = cv2.resize(frame,(480,480));
             
             calibp = draw_calib(big_image,WINDOWS_RES)
-                        
-            vec[0] = (ref_l[0] - f_clx(l_cx, nframe));
-            vec[1] = (ref_l[1] - f_cly(l_cy, nframe));
-            vec[2] = (ref_r[0] - f_crx(r_cx, nframe));
-            vec[3] = (ref_r[1] - f_cry(r_cy, nframe));
+            
+            
+            vec[0] = f_clx((ref_l[0] - l_cx), nframe);
+            vec[1] = f_cly((ref_l[1] - l_cy), nframe);
+            vec[2] = f_crx((ref_r[0] - r_cx), nframe);
+            vec[3] = f_cry((ref_r[1] - r_cy), nframe);
 
-
-            #vec[0] = (ref_l[0] - np.mean(iris_2dl[:,0]));
-            #vec[1] = (ref_l[1] - np.mean(iris_2dl[:,1]));
-            #vec[2] = (ref_r[0] - np.mean(iris_2dl[:,2]));
-            #vec[3] = (ref_r[1] - np.mean(iris_2dl[:,3]));
 
             if calib == 1:  
                 if METHOD == 0:
