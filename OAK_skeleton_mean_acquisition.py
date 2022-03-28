@@ -325,6 +325,7 @@ with depthai.Device(pipeline) as device:
                 ret, M, mask = cv2.estimateAffine3D(landmarks,first_face_3d);
                 M = np.mat(M);
                 #trans_mat = np.vstack([ M, [0,0,0,1]])
+                
 
                 #for point in landmarks:#np.mean(face_3d,axis=2):
                 #    point = np.append(point,1)
@@ -334,6 +335,10 @@ with depthai.Device(pipeline) as device:
                 #angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(M[:,:3])
 
 
+                landmarks[points_eye_l] = M.dot(np.c_[landmarks[points_eye_l],[1,1,1,1]].T).T
+                landmarks[points_eye_r] = M.dot(np.c_[landmarks[points_eye_r],[1,1,1,1]].T).T
+                landmarks[LEFT_IRIS] = M.dot(np.c_[landmarks[LEFT_IRIS],[1,1,1,1]].T).T
+                landmarks[RIGHT_IRIS] = M.dot(np.c_[landmarks[RIGHT_IRIS],[1,1,1,1]].T).T
 
 
                 ref_l = np.mean(landmarks[points_eye_l,:2], axis = 0)
