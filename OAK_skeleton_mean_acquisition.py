@@ -320,7 +320,6 @@ with depthai.Device(pipeline) as device:
                     first_face_3d = landmarks;
 
 
-
                 # Essential muscle Ts
                 ret, M, mask = cv2.estimateAffine3D(landmarks,first_face_3d);
                 M = np.mat(M);
@@ -332,7 +331,7 @@ with depthai.Device(pipeline) as device:
                 #    point = M.dot(point).T;
                 #    cv2.circle(frame, (int(point[0]*cam_res[0]), int(point[1])*cam_res[1]), 2, (0,0,255), 1)
 
-                #angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(M[:,:3])
+                angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(M[:,:3])
 
 
                 landmarks[points_eye_l] = M.dot(np.c_[landmarks[points_eye_l],[1,1,1,1]].T).T
@@ -340,6 +339,11 @@ with depthai.Device(pipeline) as device:
                 landmarks[LEFT_IRIS] = M.dot(np.c_[landmarks[LEFT_IRIS],[1,1,1,1]].T).T
                 landmarks[RIGHT_IRIS] = M.dot(np.c_[landmarks[RIGHT_IRIS],[1,1,1,1]].T).T
 
+                #mtxQ = np.linalg.inv(mtxQ);
+                #landmarks[points_eye_l] = mtxQ.dot(landmarks[points_eye_l].T).T
+                #landmarks[points_eye_r] = mtxQ.dot(landmarks[points_eye_r].T).T
+                #landmarks[LEFT_IRIS] = mtxQ.dot(landmarks[LEFT_IRIS].T).T
+                #landmarks[RIGHT_IRIS] = mtxQ.dot(landmarks[RIGHT_IRIS].T).T
 
                 ref_l = np.mean(landmarks[points_eye_l,:2], axis = 0)
                 ref_r = np.mean(landmarks[points_eye_r,:2], axis = 0)                
