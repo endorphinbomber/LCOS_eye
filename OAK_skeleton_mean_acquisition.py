@@ -334,16 +334,15 @@ with depthai.Device(pipeline) as device:
                 angles, mtxR, mtxQ, Qx, Qy, Qz = cv2.RQDecomp3x3(M[:,:3])
 
 
-                landmarks[points_eye_l] = M.dot(np.c_[landmarks[points_eye_l],[1,1,1,1]].T).T
-                landmarks[points_eye_r] = M.dot(np.c_[landmarks[points_eye_r],[1,1,1,1]].T).T
-                landmarks[LEFT_IRIS] = M.dot(np.c_[landmarks[LEFT_IRIS],[1,1,1,1]].T).T
-                landmarks[RIGHT_IRIS] = M.dot(np.c_[landmarks[RIGHT_IRIS],[1,1,1,1]].T).T
+                #landmarks[points_eye_l] = M.dot(np.c_[landmarks[points_eye_l],[1,1,1,1]].T).T
+                #landmarks[points_eye_r] = M.dot(np.c_[landmarks[points_eye_r],[1,1,1,1]].T).T
+                #landmarks[LEFT_IRIS] = M.dot(np.c_[landmarks[LEFT_IRIS],[1,1,1,1]].T).T
+                #landmarks[RIGHT_IRIS] = M.dot(np.c_[landmarks[RIGHT_IRIS],[1,1,1,1]].T).T
 
-                #mtxQ = np.linalg.inv(mtxQ);
-                #landmarks[points_eye_l] = mtxQ.dot(landmarks[points_eye_l].T).T
-                #landmarks[points_eye_r] = mtxQ.dot(landmarks[points_eye_r].T).T
-                #landmarks[LEFT_IRIS] = mtxQ.dot(landmarks[LEFT_IRIS].T).T
-                #landmarks[RIGHT_IRIS] = mtxQ.dot(landmarks[RIGHT_IRIS].T).T
+                landmarks[points_eye_l] = mtxQ.dot(landmarks[points_eye_l].T).T
+                landmarks[points_eye_r] = mtxQ.dot(landmarks[points_eye_r].T).T
+                landmarks[LEFT_IRIS] = mtxQ.dot(landmarks[LEFT_IRIS].T).T
+                landmarks[RIGHT_IRIS] = mtxQ.dot(landmarks[RIGHT_IRIS].T).T
 
                 ref_l = np.mean(landmarks[points_eye_l,:2], axis = 0)
                 ref_r = np.mean(landmarks[points_eye_r,:2], axis = 0)                
