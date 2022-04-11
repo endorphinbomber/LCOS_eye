@@ -43,25 +43,25 @@ face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_de
 
 
 
-def initiate_dai():
+#def initiate_dai():
     # Create Videostream (needed so window stays open)
     # Pipeline tells DepthAI what operations to perform when running - you define all of the resources used and flows here
-    pipeline = depthai.Pipeline()
+#    pipeline = depthai.Pipeline()
 
     # First, we want the Color camera as the output
-    cam_rgb = pipeline.createColorCamera()
-    cam_rgb.setPreviewSize(cam_res[0], cam_res[1])  # 300x300 will be the preview frame size, available as 'preview' output of the node
-    cam_rgb.setInterleaved(False)
+#    cam_rgb = pipeline.createColorCamera()
+#    cam_rgb.setPreviewSize(cam_res[0], cam_res[1])  # 300x300 will be the preview frame size, available as 'preview' output of the node
+#    cam_rgb.setInterleaved(False)
     #cam_rgb.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_4_K)
     #cam_rgb.initialControl.setManualExposure(9000, 1200)
     #cam_rgb.setFps(40)
 
-    xout_rgb = pipeline.createXLinkOut()
-    xout_rgb.setStreamName("rgb")
-    cam_rgb.preview.link(xout_rgb.input)
-    return pipeline;
-    
-pipeline = initiate_dai();
+#    xout_rgb = pipeline.createXLinkOut()
+#    xout_rgb.setStreamName("rgb")
+#    cam_rgb.preview.link(xout_rgb.input)
+#    return pipeline;
+#    
+#pipeline = initiate_dai();
 
 def draw_calib(image,WINDOWS_RES):
 
@@ -270,39 +270,35 @@ class OneEuroFilter(object):
 
 
 
+vid = cv2.VideoCapture(0)
 
 #first_face_3d = np.load('C:/Users/SebastianG/Nextcloud/_SEBASTIAN/Forschung/Eye Tracking/AET-v2/FACE_ROT/face_3d_middle.npy')
 
-with depthai.Device(pipeline) as device:
-    # From this point, the Device will be in "running" mode and will start sending data via XLink
-    q_rgb = device.getOutputQueue("rgb")
-    frame = None;
-    img_h, img_w = cam_res[1], cam_res[0];
-    ref_l = [0,0];
-    ref_r = [0,0];
-    l_cx, l_cy, r_cx, r_cy = 0, 0, 0, 0;
-    
-    nframe = 0;
 
-    config = {
+img_h, img_w = cam_res[1], cam_res[0];
+ref_l = [0,0];
+ref_r = [0,0];
+l_cx, l_cy, r_cx, r_cy = 0, 0, 0, 0;
+frame = None;
+nframe = 0;
+
+config = {
             'freq': 120,       # Hz
             'mincutoff': 1.0,  # FIXME
             'beta': 1.0,       # FIXME
             'dcutoff': 1.0     # this one should be ok
             }
 
-    f_cry = OneEuroFilter(**config)
-    f_crx = OneEuroFilter(**config)
-    f_cly = OneEuroFilter(**config)
-    f_clx = OneEuroFilter(**config)
+f_cry = OneEuroFilter(**config)
+f_crx = OneEuroFilter(**config)
+f_cly = OneEuroFilter(**config)
+f_clx = OneEuroFilter(**config)
 
 
     
-    while True:
-        in_rgb = q_rgb.tryGet()
+while True:
+        ret, frame = vid.read()
         big_image.fill(255);
-        if in_rgb is not None:
-            frame = in_rgb.getCvFrame()
             
         if frame is not None:
 
@@ -371,8 +367,8 @@ with depthai.Device(pipeline) as device:
             calibp = draw_calib(big_image,WINDOWS_RES)
             
             
-            vec[0] = f_clx((ref_l[0] - l_cx), nframe);
-            vec[1] = f_cly((ref_l[1] - l_cy), nframe);
+            vec[0] = 50#f_clx((ref_l[0] - l_cx), nframe);
+            vec[1] = 50#f_cly((ref_l[1] - l_cy), nframe);
             vec[2] = f_crx((ref_r[0] - r_cx), nframe);
             vec[3] = f_cry((ref_r[1] - r_cy), nframe);
 
